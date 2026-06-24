@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #D4AF37;
+  --gold-bright: #E9C75D;
+  --gold-deep: #9C7A24;
+  --ivory: #F4ECD8;
+  --ink: #0B0A09;
+  --ink-soft: #15130F;
+  --ink-card: #1B1814;
+}
+
+html { scroll-behavior: smooth; }
+body { background-color: var(--ink); font-family: 'Inter', sans-serif; }
+.font-display { font-family: 'Playfair Display', serif; }
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--gold-deep); border-radius: 4px; }
+
+@keyframes fadeUp { from { opacity:0; transform: translateY(14px);} to { opacity:1; transform: translateY(0);} }
+.animate-fadeUp { animation: fadeUp 0.5s ease both; }

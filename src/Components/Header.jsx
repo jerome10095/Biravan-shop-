@@ -42,7 +42,7 @@ import { SHOP } from "../data";
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full border flex items-center justify-center font-display text-lg" style={{ borderColor: "var(--gold)", color: "var(--gold)" }}>
-              B
+              BV L
             </div>
             <div className="leading-tight hidden sm:block">
               <div className="font-display text-xl sm:text-2xl tracking-wide" style={{ color: "var(--gold-bright)" }}>{SHOP.name}</div>

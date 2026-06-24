@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Search } from "lucide-react";
 import { PRODUCTS, CATEGORIES } from "../data";
 import ProductCard from "./ProductCard";
+import React from "react";
 
 /**
  * Props:

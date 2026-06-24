@@ -1,5 +1,7 @@
 import { BookOpen, Ruler, MessageCircle, MapPin, LifeBuoy } from "lucide-react";
 import { SHOP } from "../data";
+import React from "react";
+
 
 /**
  * Floating icon dock on the right edge of the screen — quick shortcuts

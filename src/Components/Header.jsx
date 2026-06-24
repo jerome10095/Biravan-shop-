@@ -1,3 +1,4 @@
+import React from "react";
 import { ShoppingBag, X, Menu, User } from "lucide-react";
 import { SHOP } from "../data";
 

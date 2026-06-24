@@ -1,6 +1,7 @@
 import { MapPin, Phone, Mail, Clock, Navigation, Loader2 } from "lucide-react";
 import { SHOP } from "../data";
 import { GoldButton, OutlineButton, Divider } from "./Buttons";
+import React from "react";
 
 /**
  * Props:

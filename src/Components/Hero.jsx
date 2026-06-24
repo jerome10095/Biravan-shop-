@@ -1,4 +1,5 @@
 import { placeholder } from "../data";
+import React from "react";
 
 /**
  * Full-bleed hero with a looping video background.

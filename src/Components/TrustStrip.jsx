@@ -1,4 +1,5 @@
 import { Truck, Smartphone, CheckCircle2 } from "lucide-react";
+import React from "react";
 
 const ITEMS = [
   { icon: Truck, label: "Delivery in Gisenyi" },

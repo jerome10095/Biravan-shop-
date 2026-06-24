@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import {dom} from 'react-dom/client';
-
 import React from 'react';
 import { SHOP, distanceKm } from "./data";
 

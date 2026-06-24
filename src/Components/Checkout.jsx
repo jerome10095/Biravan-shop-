@@ -1,6 +1,7 @@
 import { ChevronLeft, Smartphone, CreditCard, Truck } from "lucide-react";
 import { formatRWF } from "../data";
 import { GoldButton } from "./Buttons";
+import React from "react";
 
 const PAYMENT_METHODS = [
   { id: "momo", label: "MTN Mobile Money", icon: Smartphone },

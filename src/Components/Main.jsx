@@ -2,6 +2,8 @@ import Hero from "./Hero";
 import TrustStrip from "./TrustStrip";
 import Shop from "./Shop";
 import Location from "./Location";
+import React from "react";
+
 
 /**
  * Everything between the header and the footer.

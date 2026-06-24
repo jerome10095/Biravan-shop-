@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Minus, Plus, Truck } from "lucide-react";
 import { SIZE_SETS, formatRWF, placeholder } from "../data";
 import { GoldButton } from "./Buttons";
+import React from "react";
 
 /**
  * Props:

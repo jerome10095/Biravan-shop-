@@ -1,6 +1,7 @@
 import { ShoppingBag, X, Minus, Plus, Trash2 } from "lucide-react";
 import { formatRWF, placeholder } from "../data";
 import { GoldButton } from "./Buttons";
+import React from "react";
 
 /**
  * Props:

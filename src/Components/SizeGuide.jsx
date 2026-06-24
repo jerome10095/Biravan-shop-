@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import React from "react";
 
 const CLOTHING_ROWS = [
   { size: "S", chest: "88–92", waist: "76–80" },

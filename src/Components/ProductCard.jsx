@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { formatRWF, placeholder } from "../data";
+import React from "react";
 
 /**
  * Props:

@@ -3,6 +3,8 @@
  * GoldButton, OutlineButton, and the stitched gold Divider.
  */
 
+import React from "react";
+
 export function GoldButton({ children, className = "", ...props }) {
   return (
     <button

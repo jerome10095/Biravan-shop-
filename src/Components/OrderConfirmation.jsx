@@ -1,6 +1,7 @@
 import { CheckCircle2 } from "lucide-react";
 import { formatRWF } from "../data";
 import { GoldButton } from "./Buttons";
+import React from "react";
 
 /** Props: order: { number, total, name, method }, onClose: () => void */
 export default function OrderConfirmation({ order, onClose }) {

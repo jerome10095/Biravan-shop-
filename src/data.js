@@ -4,11 +4,11 @@
  */
 
 export const SHOP = {
-  name: "BIRAVAN",
-  sub: "LINE BOUTIQUE",
+  name: "BIRAVAN LINE",
+  sub: "BOUTIQUE",
   address: "KN3 Rd, Gisenyi, Rubavu District, Western Province, Rwanda",
-  phone: "+250 788 123 456",
-  email: "hello@biravanboutique.rw",
+  phone: "+250 784 525 336",
+  email: "biravanline@gmail.com",
   // Exact pin dropped by the owner — used for "Get Directions".
   mapsLink: "https://maps.app.goo.gl/kGyG7UvHoSjpvrCv8",
   // Coordinates resolved from the link above — used for the embedded map and distance check.

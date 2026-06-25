@@ -11,7 +11,7 @@ export default function Hero() {
     <section id="home" className="relative h-[640px] sm:h-[760px] overflow-hidden flex items-end justify-center">
       {/* Fallback image, always present underneath */}
       <img
-        src="https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=1600&q=80&auto=format&fit=crop"
+        src="/public\videos/Entry.jpeg"
         onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholder("BVL"); }}
         alt="BIRAVAN LINE Boutique"
         className="absolute inset-0 w-full h-full object-cover"

@@ -4,11 +4,11 @@
  */
 
 export const SHOP = {
-  name: "BIRAVAN",
-  sub: "LINE BOUTIQUE",
+  name: "BIRAVAN LINE",
+  sub: "BOUTIQUE",
   address: "KN3 Rd, Gisenyi, Rubavu District, Western Province, Rwanda",
-  phone: "+250 788 123 456",
-  email: "hello@biravanboutique.rw",
+  phone: "+250 784525336",
+  email: "biravan@gmail.com",
   lat: -1.7037,
   lng: 29.2557,
 };

@@ -9,8 +9,12 @@ export default function Footer() {
           <div className="font-display text-xl mb-3" style={{ color: "var(--gold-bright)" }}>{SHOP.name}</div>
           <p className="text-sm text-stone-500 leading-relaxed mb-4">Premium menswear crafted with intention, based in Gisenyi, Rwanda.</p>
           <div className="flex gap-3">
+
+
             <a href="#" aria-label="Instagram" className="w-9 h-9 rounded-full border border-white/10 hover:border-amber-400/50 flex items-center justify-center text-[11px] font-semibold text-stone-400">IG</a>
             <a href="#" aria-label="Facebook" className="w-9 h-9 rounded-full border border-white/10 hover:border-amber-400/50 flex items-center justify-center text-[11px] font-semibold text-stone-400">FB</a>
+          
+          
           </div>
         </div>
         <div>

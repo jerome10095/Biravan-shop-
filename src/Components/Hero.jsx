@@ -32,7 +32,7 @@ export default function Hero() {
       <div className="relative z-10 text-center px-6 pb-16 sm:pb-20 max-w-2xl animate-fadeUp">
         <p className="text-xs tracking-[0.35em] uppercase mb-4" style={{ color: "var(--gold-bright)" }}>Gisenyi · Rwanda · Menswear</p>
         <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.1] text-stone-50 mb-6">
-          Tailored for the <span className="italic" style={{ color: "var(--gold-bright)" }}>Modern Man</span>
+          Gentlemen's  <span className="italic" style={{ color: "var(--gold-bright)" }}> Apparel</span>
         </h1>
         <div className="flex items-center justify-center gap-10 text-base sm:text-lg font-medium">
           <a href="#shop" className="underline underline-offset-8 hover:text-amber-300 transition" style={{ color: "var(--ivory)" }}>Shop Now</a>

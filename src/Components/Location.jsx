@@ -18,8 +18,7 @@ export default function Location({ geo, onFindMyLocation, directionsUrl, mapEmbe
           <p className="text-xs tracking-[0.35em] uppercase mb-2" style={{ color: "var(--gold)" }}>Find Us</p>
           <h2 className="font-display text-3xl sm:text-4xl text-stone-50 mb-6">Visit Our Boutique</h2>
           <p className="text-stone-400 leading-relaxed mb-8 max-w-md">
-            Step into BIRAVAN Line Boutique on the shores of Lake Kivu. Our stylists are on
-            hand to help you find the right fit, fabric, and finish.
+            Your confidence and satisfaction are our highest priorities
           </p>
 
           <div className="space-y-4 mb-8">

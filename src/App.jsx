@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import React from 'react';
-import { SHOP, distanceKm } from "./data";
+import { SHOP, distanceKm, getWhatsappUrl } from "./data";
+
+import React from "react";
 
 import Header from "./Components/Header";
 import FloatingDock from "./Components/FloatingDock";
@@ -122,9 +123,9 @@ export default function App() {
   }
 
   /* ---------- derived urls ---------- */
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${SHOP.lat},${SHOP.lng}`;
+  const directionsUrl = SHOP.mapsLink;
   const mapEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${SHOP.lng - 0.012}%2C${SHOP.lat - 0.009}%2C${SHOP.lng + 0.012}%2C${SHOP.lat + 0.009}&layer=mapnik&marker=${SHOP.lat}%2C${SHOP.lng}`;
-  const whatsappUrl = `https://wa.me/${SHOP.phone.replace(/[^0-9]/g, "")}`;
+  const whatsappUrl = getWhatsappUrl();
 
   return (
     <div className="min-h-screen text-stone-100" style={{ background: "var(--ink)" }}>
@@ -203,4 +204,3 @@ export default function App() {
     </div>
   );
 }
-

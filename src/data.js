@@ -4,14 +4,51 @@
  */
 
 export const SHOP = {
-  name: "BIRAVAN LINE",
-  sub: "BOUTIQUE",
+  name: "BIRAVAN",
+  sub: "LINE BOUTIQUE",
   address: "KN3 Rd, Gisenyi, Rubavu District, Western Province, Rwanda",
-  phone: "+250 784525336",
-  email: "biravan@gmail.com",
-  lat: -1.7037,
-  lng: 29.2557,
+  phone: "+250 788 123 456",
+  email: "hello@biravanboutique.rw",
+  // Exact pin dropped by the owner — used for "Get Directions".
+  mapsLink: "https://maps.app.goo.gl/kGyG7UvHoSjpvrCv8",
+  // Coordinates resolved from the link above — used for the embedded map and distance check.
+  lat: -1.6931381,
+  lng: 29.2599982,
 };
+
+/**
+ * 👉 Paste your real social links here. Leave any value as "" and that
+ * icon will still show in the footer but link to "#" until you fill it in.
+ * (WhatsApp is the exception — leave it blank and it's auto-built from SHOP.phone.)
+ */
+export const SOCIAL_LINKS = {
+  instagram: "", // e.g. "https://instagram.com/yourhandle"
+  whatsapp: "",  // e.g. "https://wa.me/250788123456"
+  facebook: "",  // e.g. "https://facebook.com/yourpage"
+  tiktok: "",    // e.g. "https://tiktok.com/@yourhandle"
+  snapchat: "",  // e.g. "https://snapchat.com/add/yourhandle"
+  twitter: "",   // e.g. "https://x.com/yourhandle"
+};
+
+/** Resolves the WhatsApp link: your manual override if set, otherwise built from SHOP.phone. */
+export function getWhatsappUrl() {
+  return SOCIAL_LINKS.whatsapp || `https://wa.me/${SHOP.phone.replace(/[^0-9]/g, "")}`;
+}
+
+/**
+ * Brands carried in-store. `logo` is optional — if you have the rights to
+ * display an official brand logo, drop the image file into /public/brands/
+ * and point `logo` at it (e.g. "/brands/zegna.png"). Until then, each name
+ * is shown as clean typography instead of a recreated logo.
+ */
+export const BRANDS = [
+  { name: "Nike", logo: "public/brands/Nice.png" },
+  { name: "Polo Ralph Lauren", logo: "public/brands/Polo.png" },
+  { name: "Ermenegildo Zegna", logo: "" },
+  { name: "Brunello Cucinelli", logo: "" },
+  { name: "Tom Ford", logo: "" },
+  { name: "Loro Piana", logo: "" },
+];
 
 export const CATEGORIES = ["Trending", "All", "Clothing", "Shoes", "Accessories"];
 

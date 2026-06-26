@@ -38,8 +38,8 @@ import { SHOP } from "../data";
       )}
 
       {/* ============================== MAIN NAV ============================== */}
-      <header className="sticky top-0 z-40 backdrop-blur-md border-b" style={{ background: "rgba(11,10,9,0.85)", borderColor: "rgba(212,175,55,0.15)" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-40 ">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full border flex items-center justify-center font-display text-lg" style={{ borderColor: "var(--gold)", color: "var(--gold)" }}>
               BV L
@@ -50,10 +50,10 @@ import { SHOP } from "../data";
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-9 text-[13px] font-semibold tracking-[0.12em] uppercase text-stone-300">
-            <a href="#home" className="hover:text-amber-300 transition">Home</a>
-            <a href="#shop" className="hover:text-amber-300 transition">Shop</a>
-            <a href="#location" className="hover:text-amber-300 transition">Visit Us</a>
+          <nav className="hidden md:flex items-center gap-10 text-sm font-semibold uppercase text-white">
+            <a href="#home" className="relative text-white after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-white after:transition-all hover:after:w-full">Home</a>
+            <a href="#shop" className="relative text-white after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-white after:transition-all hover:after:w-full">Shop</a>
+            <a href="#location" className="relative text-white after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-white after:transition-all hover:after:w-full">Visit Us</a>
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-3">

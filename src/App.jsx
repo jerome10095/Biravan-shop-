@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { SHOP, distanceKm, getWhatsappUrl } from "./data";
-
-import React from "react";
+import { SHOP, distanceKm, getWhatsappUrl, buildWhatsappUrl, ORDER_WHATSAPP_NUMBER, PAYMENT_METHOD_LABELS, formatRWF } from "./data";
 
 import Header from "./Components/Header";
 import FloatingDock from "./Components/FloatingDock";
@@ -12,6 +10,7 @@ import SizeGuide from "./Components/SizeGuide";
 import Cart from "./Components/Cart";
 import Checkout from "./Components/Checkout";
 import OrderConfirmation from "./Components/OrderConfirmation";
+import React from "react";
 
 export default function App() {
   /* ---------- shop / catalog state ---------- */
@@ -65,7 +64,7 @@ export default function App() {
       if (existing) {
         return prev.map((i) => (i.key === key ? { ...i, qty: i.qty + qty } : i));
       }
-      return [...prev, { key, id: product.id, name: product.name, price: product.price, img: product.img, color, size, qty }];
+      return [...prev, { key, id: product.id, name: product.name, price: product.price, img: product.images[0], color, size, qty }];
     });
   }
 
@@ -103,6 +102,35 @@ export default function App() {
   }
 
   /* ---------- checkout ---------- */
+  function buildOrderMessage(number) {
+    const itemLines = cart
+      .map((i) => `• ${i.name} — ${i.color} / ${i.size} — x${i.qty} — ${formatRWF(i.price * i.qty)}`)
+      .join("\n");
+    const addressLine = `${shipping.address}${shipping.sector ? `, ${shipping.sector}` : ""}`;
+    const paymentLabel = PAYMENT_METHOD_LABELS[paymentMethod] || paymentMethod;
+
+    return [
+      "New order from the BIRAVAN website",
+      "",
+      `Order #${number}`,
+      `Name: ${shipping.fullName}`,
+      `Phone: ${shipping.phone}`,
+      `Address: ${addressLine}`,
+      shipping.notes ? `Notes: ${shipping.notes}` : null,
+      "",
+      "Items:",
+      itemLines,
+      "",
+      `Subtotal: ${formatRWF(subtotal)}`,
+      `Shipping: ${shippingFee === 0 ? "Free" : formatRWF(shippingFee)}`,
+      `Total: ${formatRWF(grandTotal)}`,
+      "",
+      `Payment method: ${paymentLabel}`,
+    ]
+      .filter((line) => line !== null)
+      .join("\n");
+  }
+
   function placeOrder() {
     if (!shipping.fullName || !shipping.phone || !shipping.address || !paymentMethod) {
       setFormError("Please fill in your details and choose a payment method.");
@@ -110,7 +138,12 @@ export default function App() {
     }
     setFormError("");
     const number = `BV-${Math.floor(100000 + Math.random() * 900000)}`;
-    setOrder({ number, total: grandTotal, name: shipping.fullName, method: paymentMethod });
+
+    // Send the order straight to the boutique's WhatsApp, pre-filled and ready to send.
+    const orderWhatsappUrl = buildWhatsappUrl(ORDER_WHATSAPP_NUMBER, buildOrderMessage(number));
+    window.open(orderWhatsappUrl, "_blank", "noopener,noreferrer");
+
+    setOrder({ number, total: grandTotal, name: shipping.fullName, method: paymentMethod, whatsappUrl: orderWhatsappUrl });
     setCart([]);
     setIsCheckoutOpen(false);
   }

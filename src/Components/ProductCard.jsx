@@ -18,7 +18,7 @@ export default function ProductCard({ product, isWished, onToggleWish, onOpen })
     >
       <div className="relative aspect-[4/5] overflow-hidden">
         <img
-          src={product.img}
+          src={product.images[0]}
           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholder(product.name[0]); }}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-500"

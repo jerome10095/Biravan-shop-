@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Minus, Plus, Truck } from "lucide-react";
 import { SIZE_SETS, formatRWF, placeholder } from "../data";
 import { GoldButton } from "./Buttons";
+import ImageGallery from "./ImageGallery";
 import React from "react";
 
 /**
@@ -20,14 +21,13 @@ export default function ProductDetail({ product, onClose, onAdd }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black/75">
       <div className="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border grid md:grid-cols-2" style={{ borderColor: "rgba(212,175,55,0.25)", background: "var(--ink-soft)" }}>
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "rgba(11,10,9,0.7)" }}>
+        <button onClick={onClose} className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "rgba(11,10,9,0.7)" }}>
           <X className="w-4 h-4 text-stone-200" />
         </button>
-        <img
-          src={product.img}
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholder(product.name[0]); }}
+        <ImageGallery
+          images={product.images}
           alt={product.name}
-          className="w-full h-64 md:h-full object-cover"
+          fallbackSrc={placeholder(product.name[0])}
         />
         <div className="p-6 sm:p-8">
           <p className="text-xs tracking-widest uppercase mb-2" style={{ color: "var(--gold)" }}>{product.category}</p>

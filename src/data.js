@@ -7,8 +7,8 @@ export const SHOP = {
   name: "BIRAVAN",
   sub: "LINE BOUTIQUE",
   address: "KN3 Rd, Gisenyi, Rubavu District, Western Province, Rwanda",
-  phone: "+250 788 123 456",
-  email: "hello@biravanboutique.rw",
+  phone: "+250 784 525 336",
+  email: "birambaj@gmail.com",
   // Exact pin dropped by the owner — used for "Get Directions".
   mapsLink: "https://maps.app.goo.gl/kGyG7UvHoSjpvrCv8",
   // Coordinates resolved from the link above — used for the embedded map and distance check.
@@ -22,8 +22,8 @@ export const SHOP = {
  * (WhatsApp is the exception — leave it blank and it's auto-built from SHOP.phone.)
  */
 export const SOCIAL_LINKS = {
-  instagram: "", // e.g. "https://instagram.com/yourhandle"
-  whatsapp: "",  // e.g. "https://wa.me/250788123456"
+  instagram: "https://www.instagram.com/biravanlane/", // e.g. "https://instagram.com/yourhandle"
+  whatsapp: "https://wa.me/250784525336",
   facebook: "",  // e.g. "https://facebook.com/yourpage"
   tiktok: "",    // e.g. "https://tiktok.com/@yourhandle"
   snapchat: "",  // e.g. "https://snapchat.com/add/yourhandle"
@@ -221,12 +221,46 @@ export const PRODUCTS = [
     ] },
   { id: 12, name: "Merino Wool Beanie", category: "Accessories", price: 15000, tag: null,
     images: [
-      "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=600&q=80&auto=format&fit=crop",
+      "public/Products/Shoes/Brunchelo.jfif",
       imagePlaceholder("Add a worn photo"),
     ],
     colors: [
       { name: "Charcoal", hex: "#2b2b2b" }, { name: "Camel", hex: "#9c7a4a" },
       { name: "Black", hex: "#111111" }, { name: "Burgundy", hex: "#5c2027" },
+    ] },
+     { id: 12, name: "Merino Wool Beanie", category: "Accessories", price: 15000, tag: null,
+    images: [
+      "public/Products/Shoes/Brunchelo.jfif",
+      imagePlaceholder("Add a worn photo"),
+    ],
+    colors: [
+      { name: "Charcoal", hex: "#2b2b2b" }, { name: "Camel", hex: "#9c7a4a" },
+      { name: "Black", hex: "#111111" }, { name: "Burgundy", hex: "#5c2027" },
+    ] },
+
+    //Shoes Products
+     { id: 12, name: "Brunchelo", category: "Shoes", price: 15000, tag: null,
+    images: [
+      "public/Products/Shoes/Brunchelo.jfif",
+      imagePlaceholder("Add a worn photo"),
+    ],
+    colors: [
+      { name: "Charcoal", hex: "#2b2b2b" }, { name: "Dark green", hex: "#055c18" },
+      { name: "Black", hex: "#111111" }, { name: "Burgundy", hex: "#5c2027" },
+    ] },
+     { id: 12, name: "Loro Piana Summer Walk", category: "Shoes", price: 15000, tag: null,
+    images: [
+      "public/Products/Shoes/loro piana summer walk.jfif",
+      "Products/Shoes/Loro piana shoe.jfif",
+      "Products/Shoes/summer walk collection.jfif",
+      "Products/Shoes/Loro piana 3.jfif",
+      "Products/Shoes/Loro piana 2.jfif",
+      "Products/Shoes/LR P.jfif",
+      imagePlaceholder("Add a worn photo"),
+    ],
+    colors: [
+      { name: "Charcoal", hex: "#2b2b2b" }, { name: "Camel", hex: "#9c7a4a" },
+      { name: "Black", hex: "#111111" }, { name: "White", hex: "#f3eeef" },
     ] },
 ];
 

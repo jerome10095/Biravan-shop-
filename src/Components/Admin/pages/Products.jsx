@@ -176,6 +176,8 @@ function ProductModal({ product, onSave, onClose }) {
       : { ...BLANK_PRODUCT }
   );
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   function validate() {
     const e = {};
@@ -186,7 +188,7 @@ function ProductModal({ product, onSave, onClose }) {
     return e;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
@@ -198,7 +200,14 @@ function ProductModal({ product, onSave, onClose }) {
       images: form.images.filter(img => img.trim()),
       tag: form.tag || null,
     };
-    onSave(cleaned);
+    setSaving(true);
+    setSaveError('');
+    try {
+      await onSave(cleaned);
+    } catch (err) {
+      setSaveError(err?.message || 'Failed to save product. Please try again.');
+      setSaving(false);
+    }
   }
 
   function setField(key, val) {
@@ -394,19 +403,27 @@ function ProductModal({ product, onSave, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium text-stone-400 hover:text-white transition-colors"
+              disabled={saving}
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium text-stone-400 hover:text-white transition-colors disabled:opacity-50"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+              disabled={saving}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
               style={{ background: 'var(--gold)', color: '#0B0A09' }}
             >
-              {product ? 'Save Changes' : 'Add Product'}
+              {saving && <Loader size={14} className="animate-spin" />}
+              {saving ? 'Saving…' : product ? 'Save Changes' : 'Add Product'}
             </button>
           </div>
+          {saveError && (
+            <p className="text-red-400 text-sm flex items-center gap-1.5 mt-2">
+              <AlertCircle size={14} /> {saveError}
+            </p>
+          )}
         </form>
       </div>
     </div>

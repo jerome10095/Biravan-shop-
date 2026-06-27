@@ -9,47 +9,49 @@ import SizeGuide from "./Components/SizeGuide";
 import Cart from "./Components/Cart";
 import Checkout from "./Components/Checkout";
 import OrderConfirmation from "./Components/OrderConfirmation";
-import { trackProductView, trackCartAdd, applyAutoTags } from "./Components/Admin/store.js";
+import { trackProductView, trackCartAdd, applyAutoTags, getProducts, addOrder } from "./Components/Admin/store.js";
 import React from "react";
-
-function loadProducts() {
-  try {
-    const stored = localStorage.getItem("bv_products");
-    return stored ? JSON.parse(stored) : DEFAULT_PRODUCTS;
-  } catch {
-    return DEFAULT_PRODUCTS;
-  }
-}
 
 export default function App() {
   /* ---------- shop / catalog state ---------- */
-  const [products, setProducts] = useState(loadProducts);
-  // Tick increments whenever engagement changes so auto-tags recompute
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS);
+  const [productsReady, setProductsReady] = useState(false);
   const [engTick, setEngTick] = useState(0);
 
-  // Tagged products: auto-assigns New/Trending based on recency + engagement
   const taggedProducts = useMemo(() => applyAutoTags(products), [products, engTick]);
 
-  // Sync products when admin saves (same tab: custom event; other tab: storage event)
+  // Initial load from Supabase
   useEffect(() => {
-    function sync(e) {
-      if (!e.key || e.key === "bv_products") setProducts(loadProducts());
+    getProducts().then((prods) => {
+      setProducts(prods);
+      setProductsReady(true);
+    });
+  }, []);
+
+  // Re-fetch when admin saves a product (custom event from store.js)
+  useEffect(() => {
+    function onProductsChanged() {
+      getProducts().then(setProducts);
     }
-    window.addEventListener("bv:products-changed", sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener("bv:products-changed", sync);
-      window.removeEventListener("storage", sync);
-    };
+    window.addEventListener("bv:products-changed", onProductsChanged);
+    return () => window.removeEventListener("bv:products-changed", onProductsChanged);
   }, []);
 
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
-  const [wishlist, setWishlist] = useState(new Set());
+  const [wishlist, setWishlist] = useState(() => {
+    try { const s = localStorage.getItem("bv_wishlist"); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  });
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   /* ---------- cart / checkout state ---------- */
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try { const s = localStorage.getItem("bv_cart"); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+
+  useEffect(() => { localStorage.setItem("bv_cart", JSON.stringify(cart)); }, [cart]);
+  useEffect(() => { localStorage.setItem("bv_wishlist", JSON.stringify([...wishlist])); }, [wishlist]);
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [order, setOrder] = useState(null);
@@ -65,17 +67,16 @@ export default function App() {
   /* ---------- geolocation state ---------- */
   const [geo, setGeo] = useState({ status: "idle" });
 
-  // Lock page scroll while any overlay is open
   const anyOverlay = isCartOpen || isCheckoutOpen || !!selectedProduct || !!order || sizeGuideOpen;
   useEffect(() => {
     document.body.style.overflow = anyOverlay ? "hidden" : "";
   }, [anyOverlay]);
 
   /* ---------- derived totals ---------- */
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+  const subtotal   = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const totalQty   = cart.reduce((s, i) => s + i.qty, 0);
   const shippingFee = cart.length === 0 ? 0 : subtotal >= 100000 ? 0 : 2000;
-  const grandTotal = subtotal + shippingFee;
+  const grandTotal  = subtotal + shippingFee;
 
   /* ---------- wishlist & cart actions ---------- */
   function toggleWishlist(id) {
@@ -90,16 +91,13 @@ export default function App() {
     const key = `${product.id}-${color}-${size}`;
     setCart((prev) => {
       const existing = prev.find((i) => i.key === key);
-      if (existing) {
-        return prev.map((i) => (i.key === key ? { ...i, qty: i.qty + qty } : i));
-      }
+      if (existing) return prev.map((i) => (i.key === key ? { ...i, qty: i.qty + qty } : i));
       return [...prev, { key, id: product.id, name: product.name, price: product.price, img: product.images[0], color, size, qty }];
     });
     trackCartAdd(product.id);
     setEngTick(t => t + 1);
   }
 
-  /* ---------- product open (tracks view) ---------- */
   function openProduct(product) {
     setSelectedProduct(product);
     trackProductView(product.id);
@@ -129,10 +127,9 @@ export default function App() {
         setGeo({ status: "success", distance: d });
       },
       (err) => {
-        const message =
-          err.code === 1
-            ? "Location access was denied. Enable location permissions in your browser to see your distance from the boutique."
-            : "We couldn't detect your location right now. Please try again.";
+        const message = err.code === 1
+          ? "Location access was denied. Enable location permissions in your browser to see your distance from the boutique."
+          : "We couldn't detect your location right now. Please try again.";
         setGeo({ status: "error", message });
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -169,7 +166,7 @@ export default function App() {
       .join("\n");
   }
 
-  function placeOrder() {
+  async function placeOrder() {
     if (!shipping.fullName || !shipping.phone || !shipping.address || !paymentMethod) {
       setFormError("Please fill in your details and choose a payment method.");
       return;
@@ -177,8 +174,33 @@ export default function App() {
     setFormError("");
     const number = `BV-${Math.floor(100000 + Math.random() * 900000)}`;
 
+    // Open WhatsApp first so the browser doesn't block the popup
     const orderWhatsappUrl = buildWhatsappUrl(ORDER_WHATSAPP_NUMBER, buildOrderMessage(number));
     window.open(orderWhatsappUrl, "_blank", "noopener,noreferrer");
+
+    // Save order to Supabase (non-blocking — customer already sees confirmation)
+    addOrder({
+      id:           number,
+      customerName: shipping.fullName,
+      phone:        shipping.phone,
+      address:      shipping.address,
+      sector:       shipping.sector,
+      notes:        shipping.notes,
+      items:        cart.map(i => ({
+        id:       i.id,
+        name:     i.name,
+        price:    i.price,
+        qty:      i.qty,
+        color:    i.color,
+        size:     i.size,
+        img:      i.img,
+        category: products.find(p => p.id === i.id)?.category || '',
+      })),
+      subtotal,
+      shippingFee,
+      total:         grandTotal,
+      paymentMethod,
+    }).catch(e => console.error("Order save failed:", e));
 
     setOrder({ number, total: grandTotal, name: shipping.fullName, method: paymentMethod, whatsappUrl: orderWhatsappUrl });
     setCart([]);
@@ -194,8 +216,8 @@ export default function App() {
 
   /* ---------- derived urls ---------- */
   const directionsUrl = SHOP.mapsLink;
-  const mapEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${SHOP.lng - 0.012}%2C${SHOP.lat - 0.009}%2C${SHOP.lng + 0.012}%2C${SHOP.lat + 0.009}&layer=mapnik&marker=${SHOP.lat}%2C${SHOP.lng}`;
-  const whatsappUrl = getWhatsappUrl();
+  const mapEmbedUrl   = `https://www.openstreetmap.org/export/embed.html?bbox=${SHOP.lng - 0.012}%2C${SHOP.lat - 0.009}%2C${SHOP.lng + 0.012}%2C${SHOP.lat + 0.009}&layer=mapnik&marker=${SHOP.lat}%2C${SHOP.lng}`;
+  const whatsappUrl   = getWhatsappUrl();
 
   return (
     <div className="min-h-screen text-stone-100" style={{ background: "var(--ink)" }}>
@@ -213,6 +235,7 @@ export default function App() {
 
       <Main
         products={taggedProducts}
+        productsReady={productsReady}
         activeCategory={activeCategory}
         setActiveCategory={setActiveCategory}
         search={search}
@@ -231,6 +254,7 @@ export default function App() {
       {selectedProduct && (
         <ProductDetail
           product={selectedProduct}
+          allProducts={taggedProducts}
           onClose={() => setSelectedProduct(null)}
           onAdd={(color, size, qty) => {
             addToCart(selectedProduct, color, size, qty);

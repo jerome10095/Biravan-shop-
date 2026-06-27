@@ -23,12 +23,17 @@ export default function ProductCard({ product, isWished, onToggleWish, onOpen })
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
         />
-        {product.tag && (
+        {product.effectiveTag && (
           <span
             className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full"
-            style={product.tag === "Trending" ? { background: "var(--gold)", color: "#15130F" } : { background: "rgba(11,10,9,0.8)", color: "var(--gold-bright)", border: "1px solid var(--gold)" }}
+            style={product.effectiveTag === "Trending" ? { background: "var(--gold)", color: "#15130F" } : { background: "rgba(11,10,9,0.8)", color: "var(--gold-bright)", border: "1px solid var(--gold)" }}
           >
-            {product.tag}
+            {product.effectiveTag}
+          </span>
+        )}
+        {product.stock === 0 && (
+          <span className="absolute bottom-3 left-3 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full" style={{ background: "rgba(11,10,9,0.85)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.5)" }}>
+            Out of Stock
           </span>
         )}
         <button

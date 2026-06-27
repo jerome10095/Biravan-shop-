@@ -4,7 +4,7 @@ import {
   CreditCard, Package, Calendar, SlidersHorizontal,
 } from 'lucide-react';
 import { formatRWF, PAYMENT_METHOD_LABELS } from '../../../data.js';
-import { updateOrderStatus, saveOrders, getOrders } from '../store.js';
+import { updateOrderStatus } from '../store.js';
 import { STATUS_CONFIG } from './Dashboard.jsx';
 
 const ALL_STATUSES = ['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
@@ -175,8 +175,8 @@ export default function Orders({ orders, onRefreshOrders, initialProps }) {
     if (initialProps?.status) setStatusFilter(initialProps.status);
   }, [initialProps]);
 
-  function handleStatusChange(orderId, status) {
-    updateOrderStatus(orderId, status);
+  async function handleStatusChange(orderId, status) {
+    await updateOrderStatus(orderId, status);
     onRefreshOrders();
   }
 

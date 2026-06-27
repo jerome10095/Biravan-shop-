@@ -15,6 +15,7 @@ import React from "react";
  */
 export default function Main({
   products,
+  productsReady,
   activeCategory,
   setActiveCategory,
   search,
@@ -33,6 +34,7 @@ export default function Main({
       <TrustStrip />
       <Shop
         products={products}
+        productsReady={productsReady}
         activeCategory={activeCategory}
         setActiveCategory={setActiveCategory}
         search={search}

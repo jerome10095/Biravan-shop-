@@ -1,37 +1,79 @@
+import { supabase } from '../../lib/supabase.js';
 import { PRODUCTS as DEFAULT_PRODUCTS, SHOP as DEFAULT_SHOP, SOCIAL_LINKS as DEFAULT_SOCIAL, BRANDS as DEFAULT_BRANDS } from '../../data.js';
 
-const K = {
-  products: 'bv_products',
-  orders: 'bv_orders',
-  auth: 'bv_admin_auth',
-  shop: 'bv_shop',
-  social: 'bv_social',
-  brands: 'bv_brands',
-  password: 'bv_admin_pw',
-};
-
+// ─── AUTH (stays in sessionStorage — no change) ────────────────────────────
+const K_AUTH     = 'bv_admin_auth';
+const K_PW       = 'bv_admin_pw';
 const DEFAULT_PW = 'biravan2025';
 
-// --- AUTH ---
-export const isAuthenticated = () => sessionStorage.getItem(K.auth) === '1';
+export const isAuthenticated = () => sessionStorage.getItem(K_AUTH) === '1';
 
 export function login(pw) {
-  if (pw === (localStorage.getItem(K.password) || DEFAULT_PW)) {
-    sessionStorage.setItem(K.auth, '1');
+  if (pw === (localStorage.getItem(K_PW) || DEFAULT_PW)) {
+    sessionStorage.setItem(K_AUTH, '1');
     return true;
   }
   return false;
 }
 
-export const logout = () => sessionStorage.removeItem(K.auth);
+export const logout = () => sessionStorage.removeItem(K_AUTH);
 
 export function changePassword(newPw) {
-  localStorage.setItem(K.password, newPw);
+  localStorage.setItem(K_PW, newPw);
 }
 
-// --- ENGAGEMENT & AUTO-TAGS ---
+// ─── ROW MAPPERS ───────────────────────────────────────────────────────────
+function rowToProduct(row) {
+  return {
+    id:          row.id,
+    name:        row.name,
+    category:    row.category,
+    price:       row.price,
+    stock:       row.stock ?? null,
+    tag:         row.tag ?? null,
+    description: row.description || '',
+    images:      row.images || [],
+    colors:      row.colors || [],
+    createdAt:   row.created_at,
+    updatedAt:   row.updated_at,
+  };
+}
+
+function productToRow(p) {
+  return {
+    name:        p.name,
+    category:    p.category,
+    price:       Number(p.price),
+    stock:       p.stock != null ? Number(p.stock) : null,
+    tag:         p.tag || null,
+    description: p.description || '',
+    images:      p.images || [],
+    colors:      p.colors || [],
+  };
+}
+
+function rowToOrder(row) {
+  return {
+    id:            row.id,
+    customerName:  row.customer_name,
+    phone:         row.phone,
+    address:       row.address,
+    sector:        row.sector || '',
+    notes:         row.notes || '',
+    items:         row.items || [],
+    subtotal:      row.subtotal,
+    shippingFee:   row.shipping_fee,
+    total:         row.total,
+    paymentMethod: row.payment_method,
+    status:        row.status,
+    createdAt:     row.created_at,
+    updatedAt:     row.updated_at,
+  };
+}
+
+// ─── ENGAGEMENT & AUTO-TAGS (stays in localStorage — UX only) ──────────────
 const ENG_KEY = 'bv_engagement';
-const NEW_DAYS = 30; // products added within 30 days are tagged "New"
+const NEW_DAYS = 30;
 
 export function getEngagement() {
   try { return JSON.parse(localStorage.getItem(ENG_KEY) || '{}'); } catch { return {}; }
@@ -51,10 +93,6 @@ export function trackCartAdd(id) {
   localStorage.setItem(ENG_KEY, JSON.stringify(eng));
 }
 
-// Computes effectiveTag for every product based on recency + engagement.
-// - "New"      → added within 30 days (createdAt field set by admin portal)
-// - "Trending" → top 25% by engagement score (views + cartAdds×3)
-// Falls back to the manual tag stored on the product when there is no engagement data yet.
 export function applyAutoTags(products) {
   const eng = getEngagement();
   const hasEngagement = Object.keys(eng).length > 0;
@@ -62,123 +100,124 @@ export function applyAutoTags(products) {
   const NEW_MS = NEW_DAYS * 24 * 60 * 60 * 1000;
 
   if (!hasEngagement) {
-    // No data yet — keep whatever tag was set manually
     return products.map(p => ({ ...p, effectiveTag: p.tag }));
   }
 
-  // Score every product
   const scored = products
     .map(p => ({ id: p.id, score: (eng[String(p.id)]?.views || 0) + (eng[String(p.id)]?.cartAdds || 0) * 3 }))
     .sort((a, b) => b.score - a.score);
 
-  // Top 25% with at least 1 engagement point = Trending
   const topN = Math.max(1, Math.ceil(products.length * 0.25));
   const trendingIds = new Set(scored.slice(0, topN).filter(s => s.score > 0).map(s => s.id));
 
   return products.map(p => {
-    const isNew = p.createdAt && (now - new Date(p.createdAt).getTime()) < NEW_MS;
+    const isNew      = p.createdAt && (now - new Date(p.createdAt).getTime()) < NEW_MS;
     const isTrending = trendingIds.has(p.id);
-    // Trending beats New if both apply
-    const effectiveTag = isTrending ? 'Trending' : isNew ? 'New' : null;
-    return { ...p, effectiveTag };
+    return { ...p, effectiveTag: isTrending ? 'Trending' : isNew ? 'New' : null };
   });
 }
 
-// --- PRODUCTS ---
-export function getProducts() {
-  const s = localStorage.getItem(K.products);
-  return s ? JSON.parse(s) : DEFAULT_PRODUCTS;
+// ─── PRODUCTS ──────────────────────────────────────────────────────────────
+async function seedProducts() {
+  const rows = DEFAULT_PRODUCTS.map(productToRow);
+  const { error } = await supabase.from('products').insert(rows);
+  if (error) console.error('Seed error:', error);
 }
 
-export function saveProducts(p) {
-  localStorage.setItem(K.products, JSON.stringify(p));
-  // Notify any open main-site tab (same tab: custom event; other tabs: storage event)
+export async function getProducts() {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .order('id');
+
+  if (error) {
+    console.error('getProducts error:', error);
+    return DEFAULT_PRODUCTS;
+  }
+
+  if (data.length === 0) {
+    await seedProducts();
+    return DEFAULT_PRODUCTS;
+  }
+
+  return data.map(rowToProduct);
+}
+
+export async function addProduct(product) {
+  const { data, error } = await supabase
+    .from('products')
+    .insert([productToRow(product)])
+    .select()
+    .single();
+  if (error) throw error;
+  window.dispatchEvent(new CustomEvent('bv:products-changed'));
+  return data.id;
+}
+
+export async function updateProduct(id, updates) {
+  const { error } = await supabase
+    .from('products')
+    .update({ ...productToRow(updates), updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
   window.dispatchEvent(new CustomEvent('bv:products-changed'));
 }
 
-export function addProduct(product) {
-  const products = getProducts();
-  const id = Math.max(0, ...products.map(p => p.id)) + 1;
-  const next = [...products, { ...product, id, createdAt: new Date().toISOString() }];
-  saveProducts(next);
-  return id;
+export async function deleteProduct(id) {
+  const { error } = await supabase.from('products').delete().eq('id', id);
+  if (error) throw error;
+  window.dispatchEvent(new CustomEvent('bv:products-changed'));
 }
 
-export function updateProduct(id, updates) {
-  saveProducts(getProducts().map(p => p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p));
+// ─── ORDERS ────────────────────────────────────────────────────────────────
+export async function getOrders() {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('getOrders error:', error);
+    return [];
+  }
+  return data.map(rowToOrder);
 }
 
-export function deleteProduct(id) {
-  saveProducts(getProducts().filter(p => p.id !== id));
+export async function addOrder(order) {
+  const { error } = await supabase.from('orders').insert([{
+    id:             order.id,
+    customer_name:  order.customerName,
+    phone:          order.phone,
+    address:        order.address,
+    sector:         order.sector || '',
+    notes:          order.notes || '',
+    items:          order.items,
+    subtotal:       order.subtotal,
+    shipping_fee:   order.shippingFee,
+    total:          order.total,
+    payment_method: order.paymentMethod,
+    status:         'pending',
+  }]);
+  if (error) throw error;
 }
 
-// --- ORDERS ---
-const DEMO_NAMES = ['Jean Claude Mutabazi', 'Aline Uwase', 'Patrick Nkurunziza', 'Marie Ingabire', 'David Hakizimana', 'Grace Mukamana', 'Eric Ndayishimiye', 'Yvette Uwimana', 'James Karangwa', 'Solange Niyonzima', 'Bosco Tuyishime', 'Clarisse Nyirahabimana'];
-const DEMO_PHONES = ['+250 781 234 567', '+250 788 345 678', '+250 790 456 789', '+250 783 567 890', '+250 787 654 321'];
-const DEMO_ADDRESSES = ['KN 3 Rd, Kigali', 'KG 15 Ave, Kigali', 'NR1, Musanze', 'KG 9 Ave, Kicukiro', 'Gisenyi, Rubavu', 'KN 78 St, Nyarugenge'];
-const DEMO_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'delivered', 'delivered', 'cancelled'];
-const DEMO_PAYMENTS = ['momo', 'airtel', 'cod'];
-const DEMO_NOTES = ['', '', '', 'Please deliver before 6 PM', '', 'Call before delivery', '', 'Leave at the gate', ''];
-
-function createDemoOrders() {
-  const products = getProducts();
-  const orders = Array.from({ length: 35 }, (_, i) => {
-    const numItems = 1 + Math.floor(Math.random() * 3);
-    const items = Array.from({ length: numItems }, () => {
-      const p = products[Math.floor(Math.random() * products.length)];
-      const qty = 1 + Math.floor(Math.random() * 2);
-      return { id: p.id, name: p.name, price: p.price, qty, color: p.colors[0]?.name || 'Default', size: p.category === 'Shoes' ? '42' : 'M', img: p.images[0], category: p.category };
-    });
-    const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
-    const shippingFee = subtotal >= 100000 ? 0 : 2000;
-    const daysAgo = Math.floor(Math.random() * 50);
-    const createdAt = new Date(Date.now() - daysAgo * 86400000).toISOString();
-    return {
-      id: `BV-${100001 + i}`,
-      customerName: DEMO_NAMES[Math.floor(Math.random() * DEMO_NAMES.length)],
-      phone: DEMO_PHONES[Math.floor(Math.random() * DEMO_PHONES.length)],
-      address: DEMO_ADDRESSES[Math.floor(Math.random() * DEMO_ADDRESSES.length)],
-      items, subtotal, shippingFee,
-      total: subtotal + shippingFee,
-      paymentMethod: DEMO_PAYMENTS[Math.floor(Math.random() * DEMO_PAYMENTS.length)],
-      status: DEMO_STATUSES[Math.floor(Math.random() * DEMO_STATUSES.length)],
-      notes: DEMO_NOTES[Math.floor(Math.random() * DEMO_NOTES.length)],
-      createdAt, updatedAt: createdAt,
-    };
-  });
-  orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  saveOrders(orders);
-  return orders;
+export async function updateOrderStatus(id, status) {
+  const { error } = await supabase
+    .from('orders')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
 }
 
-export function getOrders() {
-  const s = localStorage.getItem(K.orders);
-  if (s) return JSON.parse(s);
-  return createDemoOrders();
-}
+// ─── SHOP SETTINGS (localStorage — simple config, no DB needed) ────────────
+export const getShopSettings  = () => JSON.parse(localStorage.getItem('bv_shop')   || JSON.stringify(DEFAULT_SHOP));
+export const saveShopSettings = s  => localStorage.setItem('bv_shop',   JSON.stringify(s));
+export const getSocialLinks   = () => JSON.parse(localStorage.getItem('bv_social') || JSON.stringify(DEFAULT_SOCIAL));
+export const saveSocialLinks  = s  => localStorage.setItem('bv_social', JSON.stringify(s));
+export const getBrands        = () => JSON.parse(localStorage.getItem('bv_brands') || JSON.stringify(DEFAULT_BRANDS));
+export const saveBrands       = b  => localStorage.setItem('bv_brands', JSON.stringify(b));
 
-export function saveOrders(orders) {
-  localStorage.setItem(K.orders, JSON.stringify(orders));
-}
-
-export function updateOrderStatus(id, status) {
-  saveOrders(getOrders().map(o => o.id === id ? { ...o, status, updatedAt: new Date().toISOString() } : o));
-}
-
-export function addOrder(order) {
-  const orders = getOrders();
-  saveOrders([order, ...orders]);
-}
-
-// --- SHOP SETTINGS ---
-export const getShopSettings = () => JSON.parse(localStorage.getItem(K.shop) || JSON.stringify(DEFAULT_SHOP));
-export const saveShopSettings = s => localStorage.setItem(K.shop, JSON.stringify(s));
-export const getSocialLinks = () => JSON.parse(localStorage.getItem(K.social) || JSON.stringify(DEFAULT_SOCIAL));
-export const saveSocialLinks = s => localStorage.setItem(K.social, JSON.stringify(s));
-export const getBrands = () => JSON.parse(localStorage.getItem(K.brands) || JSON.stringify(DEFAULT_BRANDS));
-export const saveBrands = b => localStorage.setItem(K.brands, JSON.stringify(b));
-
-// --- ANALYTICS ---
+// ─── ANALYTICS ─────────────────────────────────────────────────────────────
 export function getAnalytics(orders) {
   const nonCancelled = orders.filter(o => o.status !== 'cancelled');
   const totalRevenue = nonCancelled.reduce((s, o) => s + o.total, 0);
@@ -188,12 +227,12 @@ export function getAnalytics(orders) {
     const d = new Date();
     d.setDate(d.getDate() - (29 - i));
     const dateStr = d.toISOString().split('T')[0];
-    const dayOrders = nonCancelled.filter(o => o.createdAt.startsWith(dateStr));
+    const dayOrders = nonCancelled.filter(o => o.createdAt?.startsWith(dateStr));
     return {
-      date: dateStr,
-      label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date:    dateStr,
+      label:   d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       revenue: dayOrders.reduce((s, o) => s + o.total, 0),
-      count: dayOrders.length,
+      count:   dayOrders.length,
     };
   });
 
@@ -206,7 +245,10 @@ export function getAnalytics(orders) {
     });
   });
 
-  const topProducts = Object.entries(productSales).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, qty]) => ({ name, qty }));
+  const topProducts = Object.entries(productSales)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, qty]) => ({ name, qty }));
 
   const statusBreakdown = {};
   orders.forEach(o => { statusBreakdown[o.status] = (statusBreakdown[o.status] || 0) + 1; });

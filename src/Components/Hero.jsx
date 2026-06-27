@@ -11,7 +11,7 @@ export default function Hero() {
     <section id="home" className="relative h-[640px] sm:h-[760px] overflow-hidden flex items-end justify-center">
       {/* Fallback image, always present underneath */}
       <img
-        src="/public\videos/Entry.jpeg"
+        src="/videos/Entry.jpeg"
         onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = placeholder("BVL"); }}
         alt="BIRAVAN LINE Boutique"
         className="absolute inset-0 w-full h-full object-cover"
@@ -25,7 +25,7 @@ export default function Hero() {
         className="absolute inset-0 w-full h-full object-cover"
         onError={(e) => { e.currentTarget.style.display = "none"; }}
       >
-        <source src="/public\videos/Hero.mp4" type="video/mp4" />
+        <source src="/videos/Hero.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(11,10,9,0.15) 0%, rgba(11,10,9,0.35) 45%, rgba(11,10,9,0.92) 100%)" }} />
 

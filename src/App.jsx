@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { SHOP, distanceKm, getWhatsappUrl, buildWhatsappUrl, ORDER_WHATSAPP_NUMBER, PAYMENT_METHOD_LABELS, formatRWF } from "./data";
-
+import { SHOP, PRODUCTS as DEFAULT_PRODUCTS, distanceKm, getWhatsappUrl, buildWhatsappUrl, ORDER_WHATSAPP_NUMBER, PAYMENT_METHOD_LABELS, formatRWF } from "./data";
 import Header from "./Components/Header";
 import FloatingDock from "./Components/FloatingDock";
 import Main from "./Components/Main";
@@ -12,8 +11,32 @@ import Checkout from "./Components/Checkout";
 import OrderConfirmation from "./Components/OrderConfirmation";
 import React from "react";
 
+function loadProducts() {
+  try {
+    const stored = localStorage.getItem("bv_products");
+    return stored ? JSON.parse(stored) : DEFAULT_PRODUCTS;
+  } catch {
+    return DEFAULT_PRODUCTS;
+  }
+}
+
 export default function App() {
   /* ---------- shop / catalog state ---------- */
+  const [products, setProducts] = useState(loadProducts);
+
+  // Sync products whenever the admin saves changes (same tab: custom event; other tab: storage event)
+  useEffect(() => {
+    function sync(e) {
+      if (!e.key || e.key === "bv_products") setProducts(loadProducts());
+    }
+    window.addEventListener("bv:products-changed", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("bv:products-changed", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
   const [activeCategory, setActiveCategory] = useState("Trending");
   const [search, setSearch] = useState("");
   const [wishlist, setWishlist] = useState(new Set());
@@ -175,6 +198,7 @@ export default function App() {
       <FloatingDock whatsappUrl={whatsappUrl} onOpenSizeGuide={() => setSizeGuideOpen(true)} />
 
       <Main
+        products={products}
         activeCategory={activeCategory}
         setActiveCategory={setActiveCategory}
         search={search}

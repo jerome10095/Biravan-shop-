@@ -1,20 +1,21 @@
 import { useMemo } from "react";
 import { Search } from "lucide-react";
-import { PRODUCTS, CATEGORIES } from "../data";
+import { CATEGORIES } from "../data";
 import ProductCard from "./ProductCard";
 import React from "react";
 
 /**
  * Props:
+ *  - products: product array (from localStorage or data.js fallback)
  *  - activeCategory, setActiveCategory
  *  - search, setSearch
  *  - wishlist: Set of product ids
  *  - onToggleWish: (id) => void
  *  - onOpenProduct: (product) => void
  */
-export default function Shop({ activeCategory, setActiveCategory, search, setSearch, wishlist, onToggleWish, onOpenProduct }) {
+export default function Shop({ products, activeCategory, setActiveCategory, search, setSearch, wishlist, onToggleWish, onOpenProduct }) {
   const filteredProducts = useMemo(() => {
-    let list = PRODUCTS;
+    let list = products;
     if (activeCategory === "Trending") list = list.filter((p) => p.tag === "Trending");
     else if (activeCategory !== "All") list = list.filter((p) => p.category === activeCategory);
     if (search.trim()) list = list.filter((p) => p.name.toLowerCase().includes(search.trim().toLowerCase()));

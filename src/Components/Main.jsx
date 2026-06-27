@@ -14,6 +14,7 @@ import React from "react";
  *  - geo, onFindMyLocation, directionsUrl, mapEmbedUrl — location section
  */
 export default function Main({
+  products,
   activeCategory,
   setActiveCategory,
   search,
@@ -31,6 +32,7 @@ export default function Main({
       <Hero />
       <TrustStrip />
       <Shop
+        products={products}
         activeCategory={activeCategory}
         setActiveCategory={setActiveCategory}
         search={search}

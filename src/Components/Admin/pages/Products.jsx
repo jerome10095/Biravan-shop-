@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Plus, Search, Edit2, Trash2, X, Check, Image as ImageIcon,
-  ChevronDown, Tag, Palette, AlertCircle, Package,
+  Plus, Search, Edit2, Trash2, X, Image as ImageIcon,
+  AlertCircle, Package, Upload, Loader,
 } from 'lucide-react';
 import { formatRWF } from '../../../data.js';
-import { addProduct, updateProduct, deleteProduct, saveProducts, getProducts } from '../store.js';
+import { addProduct, updateProduct, deleteProduct } from '../store.js';
+import { uploadImage } from '../../../lib/cloudinary.js';
 
 const TAGS = ['Trending', 'New'];
 const CAT_OPTIONS = ['Clothing', 'Shoes', 'Accessories'];
 
 const BLANK_PRODUCT = {
   name: '', category: 'Clothing', price: '', tag: null,
+  stock: '', description: '',
   images: [''],
   colors: [{ name: 'Black', hex: '#111111' }],
 };
@@ -50,10 +52,127 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
   );
 }
 
+function ImageSlot({ value, onChange, onRemove }) {
+  const inputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [dragging, setDragging] = useState(false);
+
+  async function handleFile(file) {
+    if (!file) return;
+    setUploadError('');
+    setUploading(true);
+    try {
+      const url = await uploadImage(file);
+      onChange(url);
+    } catch {
+      setUploadError('Upload failed — check your Cloudinary preset is set to Unsigned.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleInputChange(e) {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+    e.target.value = '';
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) handleFile(file);
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleInputChange} />
+
+      {value.trim() ? (
+        <div className="flex items-center gap-3">
+          <div className="relative group w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
+            <img
+              src={value}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={e => (e.target.style.opacity = '0.2')}
+            />
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className="p-1.5 rounded-md bg-white/20 hover:bg-white/30 transition-colors"
+                title="Replace image"
+              >
+                <Upload size={12} className="text-white" />
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
+              style={{ background: 'rgba(212,175,55,0.12)', color: 'var(--gold)', border: '1px solid rgba(212,175,55,0.25)' }}
+            >
+              {uploading ? <Loader size={11} className="animate-spin" /> : <Upload size={11} />}
+              {uploading ? 'Uploading…' : 'Replace'}
+            </button>
+            {onRemove && (
+              <button
+                type="button"
+                onClick={onRemove}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors hover:text-red-400"
+                style={{ background: 'rgba(255,255,255,0.04)', color: '#78716c', border: '1px solid rgba(255,255,255,0.06)' }}
+              >
+                <X size={11} /> Remove
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div
+          onClick={() => !uploading && inputRef.current?.click()}
+          onDrop={handleDrop}
+          onDragOver={e => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          className="flex flex-col items-center justify-center gap-2 py-7 rounded-xl cursor-pointer transition-all select-none"
+          style={{
+            border: `1.5px dashed ${dragging ? 'rgba(212,175,55,0.55)' : 'rgba(255,255,255,0.1)'}`,
+            background: dragging ? 'rgba(212,175,55,0.04)' : 'rgba(255,255,255,0.02)',
+          }}
+        >
+          {uploading ? (
+            <Loader size={22} className="text-stone-400 animate-spin" />
+          ) : (
+            <Upload size={22} className="text-stone-500" />
+          )}
+          <div className="text-center">
+            <p className="text-stone-400 text-xs font-medium">
+              {uploading ? 'Uploading…' : 'Click to upload'}
+            </p>
+            {!uploading && (
+              <p className="text-stone-600 text-xs mt-0.5">or drag & drop — JPG, PNG, WEBP</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {uploadError && (
+        <p className="text-red-400 text-xs flex items-center gap-1">
+          <AlertCircle size={11} /> {uploadError}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ProductModal({ product, onSave, onClose }) {
   const [form, setForm] = useState(() =>
     product
-      ? { ...product, images: product.images.length > 0 ? [...product.images] : [''], price: String(product.price) }
+      ? { ...product, images: product.images.length > 0 ? [...product.images] : [''], price: String(product.price), stock: String(product.stock ?? ''), description: product.description || '' }
       : { ...BLANK_PRODUCT }
   );
   const [errors, setErrors] = useState({});
@@ -62,7 +181,7 @@ function ProductModal({ product, onSave, onClose }) {
     const e = {};
     if (!form.name.trim()) e.name = 'Product name is required';
     if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) e.price = 'Valid price required';
-    if (form.images.every(img => !img.trim())) e.images = 'At least one image URL is required';
+    if (form.images.every(img => !img.trim())) e.images = 'Please upload at least one image';
     if (form.colors.some(c => !c.name.trim())) e.colors = 'All colors need a name';
     return e;
   }
@@ -74,6 +193,8 @@ function ProductModal({ product, onSave, onClose }) {
     const cleaned = {
       ...form,
       price: Number(form.price),
+      stock: form.stock === '' ? null : Number(form.stock),
+      description: form.description.trim() || '',
       images: form.images.filter(img => img.trim()),
       tag: form.tag || null,
     };
@@ -169,21 +290,48 @@ function ProductModal({ product, onSave, onClose }) {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-stone-400 text-sm block mb-1.5">Price (RWF) *</label>
+                <input
+                  type="number"
+                  value={form.price}
+                  onChange={e => setField('price', e.target.value)}
+                  placeholder="45000"
+                  min="0"
+                  className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-stone-600 outline-none"
+                  style={{ background: 'var(--ink)', border: `1px solid ${errors.price ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}` }}
+                />
+                {errors.price && <p className="text-red-400 text-xs mt-1">{errors.price}</p>}
+                {form.price && !isNaN(Number(form.price)) && (
+                  <p className="text-stone-500 text-xs mt-1">{formatRWF(Number(form.price))}</p>
+                )}
+              </div>
+              <div>
+                <label className="text-stone-400 text-sm block mb-1.5">Stock (units)</label>
+                <input
+                  type="number"
+                  value={form.stock}
+                  onChange={e => setField('stock', e.target.value)}
+                  placeholder="0"
+                  min="0"
+                  className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-stone-600 outline-none"
+                  style={{ background: 'var(--ink)', border: '1px solid rgba(255,255,255,0.1)' }}
+                />
+                <p className="text-stone-600 text-xs mt-1">Set to 0 to mark Out of Stock</p>
+              </div>
+            </div>
+
             <div>
-              <label className="text-stone-400 text-sm block mb-1.5">Price (RWF) *</label>
-              <input
-                type="number"
-                value={form.price}
-                onChange={e => setField('price', e.target.value)}
-                placeholder="45000"
-                min="0"
-                className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-stone-600 outline-none"
-                style={{ background: 'var(--ink)', border: `1px solid ${errors.price ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}` }}
+              <label className="text-stone-400 text-sm block mb-1.5">Description</label>
+              <textarea
+                value={form.description}
+                onChange={e => setField('description', e.target.value)}
+                placeholder="Describe the product — material, fit, occasion..."
+                rows={3}
+                className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-stone-600 outline-none resize-none"
+                style={{ background: 'var(--ink)', border: '1px solid rgba(255,255,255,0.1)' }}
               />
-              {errors.price && <p className="text-red-400 text-xs mt-1">{errors.price}</p>}
-              {form.price && !isNaN(Number(form.price)) && (
-                <p className="text-stone-500 text-xs mt-1">{formatRWF(Number(form.price))}</p>
-              )}
             </div>
           </div>
 
@@ -191,16 +339,11 @@ function ProductModal({ product, onSave, onClose }) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-stone-400 text-xs uppercase tracking-widest font-semibold">
-                Images <span className="text-stone-600 normal-case tracking-normal">(URLs, up to 5)</span>
+                Images <span className="text-stone-600 normal-case tracking-normal">(up to 5)</span>
               </h3>
               {form.images.length < 5 && (
-                <button
-                  type="button"
-                  onClick={addImage}
-                  className="text-xs flex items-center gap-1 hover:opacity-80"
-                  style={{ color: 'var(--gold)' }}
-                >
-                  <Plus size={12} /> Add Image
+                <button type="button" onClick={addImage} className="text-xs flex items-center gap-1 hover:opacity-80" style={{ color: 'var(--gold)' }}>
+                  <Plus size={12} /> Add slot
                 </button>
               )}
             </div>
@@ -210,29 +353,12 @@ function ProductModal({ product, onSave, onClose }) {
               </p>
             )}
             {form.images.map((img, i) => (
-              <div key={i} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <ImageIcon size={15} className="text-stone-600 flex-shrink-0" />
-                  <input
-                    type="url"
-                    value={img}
-                    onChange={e => updateImage(i, e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    className="flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-stone-600 outline-none font-mono"
-                    style={{ background: 'var(--ink)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  />
-                  {form.images.length > 1 && (
-                    <button type="button" onClick={() => removeImage(i)} className="text-stone-600 hover:text-red-400 transition-colors flex-shrink-0">
-                      <X size={15} />
-                    </button>
-                  )}
-                </div>
-                {img.trim() && (
-                  <div className="ml-6 w-16 h-16 rounded-lg overflow-hidden bg-white/5">
-                    <img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.target.style.opacity = '0.2')} />
-                  </div>
-                )}
-              </div>
+              <ImageSlot
+                key={i}
+                value={img}
+                onChange={val => updateImage(i, val)}
+                onRemove={form.images.length > 1 ? () => removeImage(i) : null}
+              />
             ))}
           </div>
 
@@ -347,19 +473,19 @@ export default function Products({ products, onRefreshProducts, initialProps }) 
     return matchSearch && matchCat && matchTag;
   });
 
-  function handleSave(form) {
+  async function handleSave(form) {
     if (modalProduct) {
-      updateProduct(modalProduct.id, form);
+      await updateProduct(modalProduct.id, form);
     } else {
-      addProduct(form);
+      await addProduct(form);
     }
     onRefreshProducts();
     setShowModal(false);
     setModalProduct(null);
   }
 
-  function handleDelete() {
-    deleteProduct(deleteTarget.id);
+  async function handleDelete() {
+    await deleteProduct(deleteTarget.id);
     onRefreshProducts();
     setDeleteTarget(null);
   }
@@ -466,7 +592,7 @@ export default function Products({ products, onRefreshProducts, initialProps }) 
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  {['Product', 'Category', 'Price', 'Tag', 'Colors', 'Images', 'Actions'].map(h => (
+                  {['Product', 'Category', 'Price', 'Stock', 'Tag', 'Colors', 'Images', 'Actions'].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs text-stone-500 font-semibold uppercase tracking-wide whitespace-nowrap">
                       {h}
                     </th>
@@ -509,6 +635,15 @@ export default function Products({ products, onRefreshProducts, initialProps }) 
                       </td>
                       <td className="px-4 py-3 text-stone-200 font-medium whitespace-nowrap">
                         {formatRWF(product.price)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {product.stock == null ? (
+                          <span className="text-stone-600 text-xs">—</span>
+                        ) : product.stock === 0 ? (
+                          <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ color: '#EF4444', background: 'rgba(239,68,68,0.1)' }}>Out of Stock</span>
+                        ) : (
+                          <span className="text-stone-300 text-sm">{product.stock}</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {tag ? (

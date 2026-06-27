@@ -250,6 +250,87 @@ export const PRODUCTS = [
       { name: "Charcoal", hex: "#2b2b2b" }, { name: "Camel", hex: "#9c7a4a" },
       { name: "Black", hex: "#111111" }, { name: "White", hex: "#f3eeef" },
     ] },
+  { id: 15, name: "Cashmere Crewneck Sweater", category: "Clothing", price: 78000, tag: "New",
+    images: [
+      "https://images.unsplash.com/photo-1620799139507-2a76f79a2f4d?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80&auto=format&fit=crop",
+    ],
+    colors: [
+      { name: "Camel", hex: "#9c7a4a" }, { name: "Ivory", hex: "#f0ece0" },
+      { name: "Navy", hex: "#1f2a44" }, { name: "Charcoal", hex: "#2b2b2b" },
+    ] },
+  { id: 16, name: "Pleated Chino Trousers", category: "Clothing", price: 41000, tag: null,
+    images: [
+      "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1542272604-787c3835535d?w=600&q=80&auto=format&fit=crop",
+    ],
+    colors: [
+      { name: "Khaki", hex: "#c2a97e" }, { name: "Navy", hex: "#1f2a44" },
+      { name: "Olive", hex: "#5c5b3f" }, { name: "Black", hex: "#111111" },
+    ] },
+  { id: 17, name: "Suede Loafers", category: "Shoes", price: 72000, tag: "Trending",
+    images: [
+      "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1582897085656-c636d006a246?w=600&q=80&auto=format&fit=crop",
+    ],
+    colors: [
+      { name: "Tan", hex: "#b08c5f" }, { name: "Navy", hex: "#1f2a44" },
+      { name: "Burgundy", hex: "#5c2027" }, { name: "Black", hex: "#111111" },
+    ] },
+  { id: 18, name: "Leather Tote Bag", category: "Accessories", price: 55000, tag: "New",
+    images: [
+      "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1594938298603-c8148c4b4057?w=600&q=80&auto=format&fit=crop",
+    ],
+    colors: [
+      { name: "Tan", hex: "#b08c5f" }, { name: "Black", hex: "#111111" },
+      { name: "Brown", hex: "#5b3a24" },
+    ] },
+  { id: 19, name: "Polo Shirt", category: "Clothing", price: 32000, tag: null,
+    images: [
+      "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=600&q=80&auto=format&fit=crop",
+    ],
+    colors: [
+      { name: "White", hex: "#f5f3ee" }, { name: "Navy", hex: "#1f2a44" },
+      { name: "Black", hex: "#111111" }, { name: "Burgundy", hex: "#5c2027" },
+      { name: "Olive", hex: "#5c5b3f" },
+    ] },
+  { id: 20, name: "Running Sneakers", category: "Shoes", price: 65000, tag: "Trending",
+    images: [
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80&auto=format&fit=crop",
+    ],
+    colors: [
+      { name: "White", hex: "#f2f2f2" }, { name: "Black", hex: "#111111" },
+      { name: "Grey", hex: "#8a8a8a" },
+    ] },
+  { id: 21, name: "Silk Pocket Square", category: "Accessories", price: 12000, tag: null,
+    images: [
+      "https://images.unsplash.com/photo-1618517351616-38fb9c5210c6?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1598208627373-1a2df672a16c?w=600&q=80&auto=format&fit=crop",
+    ],
+    colors: [
+      { name: "Gold", hex: "#D4AF37" }, { name: "Navy", hex: "#1f2a44" },
+      { name: "Burgundy", hex: "#5c2027" }, { name: "White", hex: "#f5f3ee" },
+    ] },
+  { id: 22, name: "Quilted Bomber Jacket", category: "Clothing", price: 89000, tag: "Trending",
+    images: [
+      "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1520975954732-35dd22299614?w=600&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80&auto=format&fit=crop",
+    ],
+    colors: [
+      { name: "Black", hex: "#111111" }, { name: "Olive", hex: "#5c5b3f" },
+      { name: "Navy", hex: "#1f2a44" }, { name: "Camel", hex: "#9c7a4a" },
+    ] },
 ];
 
 /** Formats a number of Rwandan francs, e.g. 45000 -> "45,000 RWF" */

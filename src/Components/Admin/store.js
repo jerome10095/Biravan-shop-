@@ -29,6 +29,61 @@ export function changePassword(newPw) {
   localStorage.setItem(K.password, newPw);
 }
 
+// --- ENGAGEMENT & AUTO-TAGS ---
+const ENG_KEY = 'bv_engagement';
+const NEW_DAYS = 30; // products added within 30 days are tagged "New"
+
+export function getEngagement() {
+  try { return JSON.parse(localStorage.getItem(ENG_KEY) || '{}'); } catch { return {}; }
+}
+
+export function trackProductView(id) {
+  const eng = getEngagement();
+  const k = String(id);
+  eng[k] = { ...eng[k], views: (eng[k]?.views || 0) + 1, lastView: Date.now() };
+  localStorage.setItem(ENG_KEY, JSON.stringify(eng));
+}
+
+export function trackCartAdd(id) {
+  const eng = getEngagement();
+  const k = String(id);
+  eng[k] = { ...eng[k], cartAdds: (eng[k]?.cartAdds || 0) + 1 };
+  localStorage.setItem(ENG_KEY, JSON.stringify(eng));
+}
+
+// Computes effectiveTag for every product based on recency + engagement.
+// - "New"      → added within 30 days (createdAt field set by admin portal)
+// - "Trending" → top 25% by engagement score (views + cartAdds×3)
+// Falls back to the manual tag stored on the product when there is no engagement data yet.
+export function applyAutoTags(products) {
+  const eng = getEngagement();
+  const hasEngagement = Object.keys(eng).length > 0;
+  const now = Date.now();
+  const NEW_MS = NEW_DAYS * 24 * 60 * 60 * 1000;
+
+  if (!hasEngagement) {
+    // No data yet — keep whatever tag was set manually
+    return products.map(p => ({ ...p, effectiveTag: p.tag }));
+  }
+
+  // Score every product
+  const scored = products
+    .map(p => ({ id: p.id, score: (eng[String(p.id)]?.views || 0) + (eng[String(p.id)]?.cartAdds || 0) * 3 }))
+    .sort((a, b) => b.score - a.score);
+
+  // Top 25% with at least 1 engagement point = Trending
+  const topN = Math.max(1, Math.ceil(products.length * 0.25));
+  const trendingIds = new Set(scored.slice(0, topN).filter(s => s.score > 0).map(s => s.id));
+
+  return products.map(p => {
+    const isNew = p.createdAt && (now - new Date(p.createdAt).getTime()) < NEW_MS;
+    const isTrending = trendingIds.has(p.id);
+    // Trending beats New if both apply
+    const effectiveTag = isTrending ? 'Trending' : isNew ? 'New' : null;
+    return { ...p, effectiveTag };
+  });
+}
+
 // --- PRODUCTS ---
 export function getProducts() {
   const s = localStorage.getItem(K.products);

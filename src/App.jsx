@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SHOP, PRODUCTS as DEFAULT_PRODUCTS, distanceKm, getWhatsappUrl, buildWhatsappUrl, ORDER_WHATSAPP_NUMBER, PAYMENT_METHOD_LABELS, formatRWF } from "./data";
 import Header from "./Components/Header";
 import FloatingDock from "./Components/FloatingDock";
@@ -9,6 +9,7 @@ import SizeGuide from "./Components/SizeGuide";
 import Cart from "./Components/Cart";
 import Checkout from "./Components/Checkout";
 import OrderConfirmation from "./Components/OrderConfirmation";
+import { trackProductView, trackCartAdd, applyAutoTags } from "./Components/Admin/store.js";
 import React from "react";
 
 function loadProducts() {
@@ -23,8 +24,13 @@ function loadProducts() {
 export default function App() {
   /* ---------- shop / catalog state ---------- */
   const [products, setProducts] = useState(loadProducts);
+  // Tick increments whenever engagement changes so auto-tags recompute
+  const [engTick, setEngTick] = useState(0);
 
-  // Sync products whenever the admin saves changes (same tab: custom event; other tab: storage event)
+  // Tagged products: auto-assigns New/Trending based on recency + engagement
+  const taggedProducts = useMemo(() => applyAutoTags(products), [products, engTick]);
+
+  // Sync products when admin saves (same tab: custom event; other tab: storage event)
   useEffect(() => {
     function sync(e) {
       if (!e.key || e.key === "bv_products") setProducts(loadProducts());
@@ -37,7 +43,7 @@ export default function App() {
     };
   }, []);
 
-  const [activeCategory, setActiveCategory] = useState("Trending");
+  const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [wishlist, setWishlist] = useState(new Set());
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -89,6 +95,15 @@ export default function App() {
       }
       return [...prev, { key, id: product.id, name: product.name, price: product.price, img: product.images[0], color, size, qty }];
     });
+    trackCartAdd(product.id);
+    setEngTick(t => t + 1);
+  }
+
+  /* ---------- product open (tracks view) ---------- */
+  function openProduct(product) {
+    setSelectedProduct(product);
+    trackProductView(product.id);
+    setEngTick(t => t + 1);
   }
 
   function updateQty(key, delta) {
@@ -162,7 +177,6 @@ export default function App() {
     setFormError("");
     const number = `BV-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // Send the order straight to the boutique's WhatsApp, pre-filled and ready to send.
     const orderWhatsappUrl = buildWhatsappUrl(ORDER_WHATSAPP_NUMBER, buildOrderMessage(number));
     window.open(orderWhatsappUrl, "_blank", "noopener,noreferrer");
 
@@ -198,14 +212,14 @@ export default function App() {
       <FloatingDock whatsappUrl={whatsappUrl} onOpenSizeGuide={() => setSizeGuideOpen(true)} />
 
       <Main
-        products={products}
+        products={taggedProducts}
         activeCategory={activeCategory}
         setActiveCategory={setActiveCategory}
         search={search}
         setSearch={setSearch}
         wishlist={wishlist}
         onToggleWish={toggleWishlist}
-        onOpenProduct={setSelectedProduct}
+        onOpenProduct={openProduct}
         geo={geo}
         onFindMyLocation={findMyLocation}
         directionsUrl={directionsUrl}

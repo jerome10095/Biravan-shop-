@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ShoppingBag, X, Menu, User } from "lucide-react";
 import { SHOP } from "../data";
 
@@ -21,6 +21,19 @@ import { SHOP } from "../data";
   onOpenCart,
   onOpenSizeGuide,
 }) {
+  const [navHidden, setNavHidden] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const hero = document.getElementById("home");
+      if (hero) {
+        setNavHidden(hero.getBoundingClientRect().bottom <= 0);
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
       {/* ============================== ANNOUNCEMENT BAR ============================== */}
@@ -38,7 +51,7 @@ import { SHOP } from "../data";
       )}
 
       {/* ============================== MAIN NAV ============================== */}
-      <header className="sticky top-0 z-40 ">
+      <header className={`sticky top-0 z-40 transition-transform duration-300 ${navHidden ? "-translate-y-full" : "translate-y-0"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full border flex items-center justify-center font-display text-lg" style={{ borderColor: "var(--gold)", color: "var(--gold)" }}>

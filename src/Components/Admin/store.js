@@ -3,13 +3,13 @@ import { PRODUCTS as DEFAULT_PRODUCTS, SHOP as DEFAULT_SHOP, SOCIAL_LINKS as DEF
 
 // ─── AUTH (stays in sessionStorage — no change) ────────────────────────────
 const K_AUTH     = 'bv_admin_auth';
-const K_PW       = 'bv_admin_pw';
-const DEFAULT_PW = 'biravan2025';
+const K_PW = 'bv_admin_pw';
 
 export const isAuthenticated = () => sessionStorage.getItem(K_AUTH) === '1';
 
 export function login(pw) {
-  if (pw === (localStorage.getItem(K_PW) || DEFAULT_PW)) {
+  const stored = localStorage.getItem(K_PW);
+  if (stored && pw === stored) {
     sessionStorage.setItem(K_AUTH, '1');
     return true;
   }

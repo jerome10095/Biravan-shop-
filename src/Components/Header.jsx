@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShoppingBag, X, Menu, User, Lock } from "lucide-react";
+import { ShoppingBag, X, Menu, User } from "lucide-react";
 import { SHOP } from "../data";
 
 /**
@@ -97,17 +97,6 @@ import { SHOP } from "../data";
             >
               EN
             </button>
-            <a
-              href="#/admin"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full border text-[11px] font-semibold tracking-wide transition-all hover:border-amber-400/50 hover:text-amber-400"
-              style={{ borderColor: "rgba(255,255,255,0.15)", color: "#9c9590" }}
-              title="Admin Portal"
-            >
-              <Lock className="w-3 h-3" />
-              Admin
-            </a>
             <button className="md:hidden p-2 rounded-full hover:bg-white/5" onClick={() => setMobileMenuOpen((v) => !v)} aria-label="Menu">
               {mobileMenuOpen ? <X className="w-6 h-6 text-stone-200" /> : <Menu className="w-6 h-6 text-stone-200" />}
             </button>
@@ -119,16 +108,6 @@ import { SHOP } from "../data";
             <a href="#home" onClick={() => setMobileMenuOpen(false)}>Home</a>
             <a href="#shop" onClick={() => setMobileMenuOpen(false)}>Shop</a>
             <a href="#location" onClick={() => setMobileMenuOpen(false)}>Visit Us</a>
-            <a
-              href="#/admin"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 text-stone-500 hover:text-amber-400 transition-colors"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              Admin Portal
-            </a>
           </div>
         )}
       </header>

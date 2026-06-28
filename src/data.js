@@ -342,6 +342,35 @@ export const PRODUCTS = [
       { name: "Gold", hex: "#D4AF37" }, { name: "Navy", hex: "#1f2a44" },
       { name: "Burgundy", hex: "#5c2027" }, { name: "White", hex: "#f5f3ee" },
     ] },
+  { id: 23, name: "Zegna Dress Shoes", category: "Shoes", price: 110000, tag: "New", stock: 6,
+    description: "Crafted in the Ermenegildo Zegna tradition of Italian excellence. Full-grain leather uppers, hand-stitched detailing, and a leather sole that rewards daily wear with a deep, refined patina.",
+    images: [
+      "/Products/Shoes/Zegna.jfif",
+    ],
+    colors: [
+      { name: "Black", hex: "#111111" }, { name: "Brown", hex: "#5b3a24" },
+    ] },
+  { id: 24, name: "Loro Piana Open-Toe Sandal", category: "Shoes", price: 85000, tag: "Trending", stock: 9,
+    description: "A summer silhouette rooted in Loro Piana's obsession with material purity. Supple leather straps, a cushioned footbed, and an understated sole make this the definitive warm-weather luxury shoe.",
+    images: [
+      "/Products/Shoes/sliper.jfif",
+      "/Products/Shoes/Loro piana 2.jfif",
+      "/Products/Shoes/Loro piana 3.jfif",
+    ],
+    colors: [
+      { name: "Camel", hex: "#9c7a4a" }, { name: "White", hex: "#f3eeef" },
+      { name: "Black", hex: "#111111" },
+    ] },
+  { id: 25, name: "LP Classic Sneaker", category: "Shoes", price: 92000, tag: null, stock: 11,
+    description: "The LP sneaker distilled to its purest form — a clean profile, premium leather construction, and the unmistakable quiet luxury that defines every Loro Piana piece. Versatile from morning to evening.",
+    images: [
+      "/Products/Shoes/LR P.jfif",
+      "/Products/Shoes/Loro piana 2.jfif",
+    ],
+    colors: [
+      { name: "White", hex: "#f3eeef" }, { name: "Camel", hex: "#9c7a4a" },
+      { name: "Navy", hex: "#1f2a44" },
+    ] },
   { id: 22, name: "Quilted Bomber Jacket", category: "Clothing", price: 89000, tag: "Trending", stock: 13,
     description: "Insulated with a lightweight quilted fill and finished in a clean matte shell. Ribbed cuffs and waistband seal in warmth while the minimal body keeps the silhouette sharp and modern.",
     images: [

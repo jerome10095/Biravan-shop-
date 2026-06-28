@@ -82,10 +82,6 @@ export default function AdminLogin({ onLogin }) {
             {loading ? 'Verifying…' : 'Sign In'}
           </button>
 
-          <p className="text-center text-stone-600 text-xs">
-            Default password:{' '}
-            <span className="text-stone-400 font-mono">biravan2025</span>
-          </p>
         </form>
 
         <p className="text-center mt-6">

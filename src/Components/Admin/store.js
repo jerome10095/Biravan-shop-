@@ -9,7 +9,9 @@ export const isAuthenticated = () => sessionStorage.getItem(K_AUTH) === '1';
 
 export function login(pw) {
   const stored = localStorage.getItem(K_PW);
-  if (stored && pw === stored) {
+  const defaultPw = import.meta.env.VITE_ADMIN_PASSWORD;
+  const validPw = stored || defaultPw;
+  if (validPw && pw === validPw) {
     sessionStorage.setItem(K_AUTH, '1');
     return true;
   }

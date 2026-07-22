@@ -10,7 +10,7 @@ page.on('console', msg => {
 page.on('pageerror', err => errors.push(err.message));
 
 const SNAP = p => page.screenshot({
-  path: `C:/Users/HP/AppData/Local/Temp/claude/C--Users-HP-OneDrive-Desktop-biravan-handoff/2ac22089-e363-47cc-bb1a-c3b0c52fb581/scratchpad/${p}`
+  path: `C:/Users/HP/AppData/Local/Temp/claude/C--Users-HP-OneDrive-Desktop-biravan-handoff/aa419d27-dfd5-497f-b360-a60bb6165170/scratchpad/${p}`
 });
 
 await page.goto('http://localhost:5173/#/admin');
@@ -19,7 +19,7 @@ await page.waitForTimeout(2000);
 // Login
 const pwInput = page.locator('input[type="password"]');
 if (await pwInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-  await pwInput.fill('biravan2025');
+  await pwInput.fill('biravan2026');
   await page.keyboard.press('Enter');
   await page.waitForTimeout(4000);
 }

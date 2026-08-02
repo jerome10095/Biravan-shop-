@@ -1,4 +1,3 @@
-import { supabase } from '../../lib/supabase.js';
 import { PRODUCTS as DEFAULT_PRODUCTS, SHOP as DEFAULT_SHOP, SOCIAL_LINKS as DEFAULT_SOCIAL, BRANDS as DEFAULT_BRANDS } from '../../data.js';
 
 // ─── AUTH (stays in sessionStorage — no change) ────────────────────────────
@@ -119,96 +118,118 @@ export function applyAutoTags(products) {
   });
 }
 
-// ─── PRODUCTS ──────────────────────────────────────────────────────────────
-async function seedProducts() {
-  const rows = DEFAULT_PRODUCTS.map(productToRow);
-  const { error } = await supabase.from('products').insert(rows);
-  if (error) console.error('Seed error:', error);
+// ─── PRODUCTS (switched to server endpoints) ──────────────────────────────
+function adminKeyHeader() {
+  return localStorage.getItem(K_PW) || import.meta.env.VITE_ADMIN_PASSWORD || '';
 }
 
 export async function getProducts() {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .order('id');
-
-  if (error) {
-    console.error('getProducts error:', error);
+  try {
+    const res = await fetch('/api/products');
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return DEFAULT_PRODUCTS;
+    return data.map(rowToProduct);
+  } catch (e) {
+    console.error('getProducts error:', e);
     return DEFAULT_PRODUCTS;
   }
-
-  if (data.length === 0) {
-    await seedProducts();
-    return DEFAULT_PRODUCTS;
-  }
-
-  return data.map(rowToProduct);
 }
 
 export async function addProduct(product) {
-  const { data, error } = await supabase
-    .from('products')
-    .insert([productToRow(product)])
-    .select()
-    .single();
-  if (error) throw error;
+  const body = productToRow(product);
+  const res = await fetch('/api/admin_products', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKeyHeader() },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'addProduct failed');
+  }
   window.dispatchEvent(new CustomEvent('bv:products-changed'));
+  const data = await res.json();
   return data.id;
 }
 
 export async function updateProduct(id, updates) {
-  const { error } = await supabase
-    .from('products')
-    .update({ ...productToRow(updates), updated_at: new Date().toISOString() })
-    .eq('id', id);
-  if (error) throw error;
+  const body = productToRow(updates);
+  const res = await fetch(`/api/admin_products?id=${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKeyHeader() },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'updateProduct failed');
+  }
   window.dispatchEvent(new CustomEvent('bv:products-changed'));
 }
 
 export async function deleteProduct(id) {
-  const { error } = await supabase.from('products').delete().eq('id', id);
-  if (error) throw error;
+  const res = await fetch(`/api/admin_products?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-key': adminKeyHeader() },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'deleteProduct failed');
+  }
   window.dispatchEvent(new CustomEvent('bv:products-changed'));
 }
 
-// ─── ORDERS ────────────────────────────────────────────────────────────────
+// ─── ORDERS (server endpoints) ────────────────────────────────────────────
 export async function getOrders() {
-  const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('getOrders error:', error);
+  try {
+    const res = await fetch('/api/admin_orders', { headers: { 'x-admin-key': adminKeyHeader() } });
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    return data.map(rowToOrder);
+  } catch (e) {
+    console.error('getOrders error:', e);
     return [];
   }
-  return data.map(rowToOrder);
 }
 
 export async function addOrder(order) {
-  const { error } = await supabase.from('orders').insert([{
-    id:             order.id,
-    customer_name:  order.customerName,
-    phone:          order.phone,
-    address:        order.address,
-    sector:         order.sector || '',
-    notes:          order.notes || '',
-    items:          order.items,
-    subtotal:       order.subtotal,
-    shipping_fee:   order.shippingFee,
-    total:          order.total,
-    payment_method: order.paymentMethod,
-    status:         'pending',
-  }]);
-  if (error) throw error;
+  const body = {
+    id: order.id,
+    fullName: order.name || order.customerName,
+    phone: order.phone,
+    address: order.address,
+    sector: order.sector || '',
+    notes: order.notes || '',
+    items: order.items,
+    subtotal: order.subtotal,
+    shippingFee: order.shippingFee,
+    total: order.total,
+    paymentMethod: order.paymentMethod,
+  };
+
+  const res = await fetch('/api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    // If server queued the order (202) it's acceptable — surface to caller as a soft failure
+    if (res.status === 202) return;
+    throw new Error(err.error || 'addOrder failed');
+  }
 }
 
 export async function updateOrderStatus(id, status) {
-  const { error } = await supabase
-    .from('orders')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', id);
-  if (error) throw error;
+  const res = await fetch(`/api/admin_orders?id=${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKeyHeader() },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'updateOrderStatus failed');
+  }
 }
 
 // ─── SHOP SETTINGS (localStorage — simple config, no DB needed) ────────────
